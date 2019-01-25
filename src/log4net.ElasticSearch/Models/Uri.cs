@@ -1,5 +1,7 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Collections.Specialized;
+using System.Linq;
 using log4net.ElasticSearch.Infrastructure;
 
 namespace log4net.ElasticSearch.Models
@@ -19,11 +21,11 @@ namespace log4net.ElasticSearch.Models
             {
                 return
                     new System.Uri(string.Format("{0}://{1}:{2}@{3}:{4}/{5}/logEvent{6}{7}", uri.Scheme(), uri.User(), uri.Password(),
-                                                 uri.Server(), uri.Port(), uri.Index(), uri.Routing(), uri.Bulk()));
+                                                 uri.Server(), uri.Port(), uri.Index(), uri.Values(), uri.Bulk()));
             }
             return string.IsNullOrEmpty(uri.Port())
-                ? new System.Uri(string.Format("{0}://{1}/{2}/logEvent{3}{4}", uri.Scheme(), uri.Server(), uri.Index(), uri.Routing(), uri.Bulk()))
-                : new System.Uri(string.Format("{0}://{1}:{2}/{3}/logEvent{4}{5}", uri.Scheme(), uri.Server(), uri.Port(), uri.Index(), uri.Routing(), uri.Bulk()));
+                ? new System.Uri(string.Format("{0}://{1}/{2}/logEvent{3}{4}", uri.Scheme(), uri.Server(), uri.Index(), uri.Values(), uri.Bulk()))
+                : new System.Uri(string.Format("{0}://{1}:{2}/{3}/logEvent{4}{5}", uri.Scheme(), uri.Server(), uri.Port(), uri.Index(), uri.Values(), uri.Bulk()));
         }
 
         public static Uri For(string connectionString)
@@ -61,10 +63,40 @@ namespace log4net.ElasticSearch.Models
             var routing = connectionStringParts[Keys.Routing];
             if (!string.IsNullOrWhiteSpace(routing))
             {
-                return string.Format("?routing={0}", routing);
+                return string.Format("routing={0}", routing);
             }
 
             return string.Empty;
+        }
+
+        string Pipeline()
+        {
+            var pipeline = connectionStringParts[Keys.Pipeline];
+            if (!string.IsNullOrWhiteSpace(pipeline))
+            {
+                return string.Format("pipeline={0}", pipeline);
+            }
+
+            return string.Empty;
+        }
+
+        string Values()
+        {
+            List<string> values = new List<string>();
+
+            var routing = this.Routing();
+            var pipeline = this.Pipeline();
+
+            if (!string.IsNullOrEmpty(routing))
+            {
+                values.Add(routing);
+            }
+            if (!string.IsNullOrEmpty(pipeline))
+            {
+                values.Add(pipeline);
+            }
+
+            return values.Any() ? $"?{string.Join("&", values)}" : string.Empty;
         }
 
         string Bulk()
@@ -103,6 +135,7 @@ namespace log4net.ElasticSearch.Models
             public const string Rolling = "Rolling";
             public const string BufferSize = "BufferSize";
             public const string Routing = "Routing";
+            public const string Pipeline = "Pipeline";
         }
     }
 }
