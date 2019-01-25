@@ -20,12 +20,11 @@ namespace log4net.ElasticSearch.Models
             if (!string.IsNullOrWhiteSpace(uri.User()) && !string.IsNullOrWhiteSpace(uri.Password()))
             {
                 return
-                    new System.Uri(string.Format("{0}://{1}:{2}@{3}:{4}/{5}/logEvent{6}{7}", uri.Scheme(), uri.User(), uri.Password(),
-                                                 uri.Server(), uri.Port(), uri.Index(), uri.Values(), uri.Bulk()));
+                    new System.Uri($"{uri.Scheme()}://{uri.User()}:{uri.Password()}@{uri.Server()}:{uri.Port()}/{uri.Index()}/{uri.Type()}{uri.Values()}{uri.Bulk()}");
             }
             return string.IsNullOrEmpty(uri.Port())
-                ? new System.Uri(string.Format("{0}://{1}/{2}/logEvent{3}{4}", uri.Scheme(), uri.Server(), uri.Index(), uri.Values(), uri.Bulk()))
-                : new System.Uri(string.Format("{0}://{1}:{2}/{3}/logEvent{4}{5}", uri.Scheme(), uri.Server(), uri.Port(), uri.Index(), uri.Values(), uri.Bulk()));
+                ? new System.Uri($"{uri.Scheme()}://{uri.Server()}/{uri.Type()}/{uri.Values()}{uri.Values()}{uri.Bulk()}")
+                : new System.Uri($"{uri.Scheme()}://{uri.Server()}:{uri.Port()}/{uri.Index()}/{uri.Type()}{uri.Values()}{uri.Bulk()}");
         }
 
         public static Uri For(string connectionString)
@@ -117,6 +116,18 @@ namespace log4net.ElasticSearch.Models
             return IsRollingIndex(connectionStringParts)
                        ? "{0}-{1}".With(index, Clock.Date.ToString("yyyy.MM.dd"))
                        : index;
+        }
+
+        string Type()
+        {
+            var index = this.connectionStringParts[Keys.Index];
+
+            if (!string.IsNullOrWhiteSpace(index))
+            {
+                return index;
+            }
+
+            return string.Empty;
         }
 
         static bool IsRollingIndex(StringDictionary parts)
