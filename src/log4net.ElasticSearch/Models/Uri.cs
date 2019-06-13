@@ -120,7 +120,14 @@ namespace log4net.ElasticSearch.Models
 
         string Type()
         {
-            var index = this.connectionStringParts[Keys.Index];
+            var index = this.connectionStringParts[Keys.Type];
+
+            if (!string.IsNullOrWhiteSpace(index))
+            {
+                return index;
+            }
+
+            index = this.connectionStringParts[Keys.Index];
 
             if (!string.IsNullOrWhiteSpace(index))
             {
@@ -146,6 +153,7 @@ namespace log4net.ElasticSearch.Models
             public const string Rolling = "Rolling";
             public const string BufferSize = "BufferSize";
             public const string Routing = "Routing";
+            public const string Type = "Type";
             public const string Pipeline = "Pipeline";
         }
     }

@@ -16,6 +16,7 @@ namespace log4net.ElasticSearch.Tests.UnitTests
         const string BulkConnectionString = "Server=localhost;Index=log;BufferSize=10";
         const string RoutingConnectionString = "Server=localhost;Index=log;BufferSize=10;Routing=foo";
         const string RoutingAndPipelineConnectionString = "Server=localhost;Index=log;Routing=foo;Pipeline=pipe";
+        const string RoutingPipelineAndRollingConnectionString = "Scheme=http;Server=elasticsearch;Index=packing_alias;Port=9200;Type=packing;rolling=false;routing=packing;pipeline=bs_packing_pipeline";
 
         [Fact]
         public void Implicit_non_rolling_connectionstring_is_parsed_into_index_uri_without_date_suffix()
@@ -105,11 +106,19 @@ namespace log4net.ElasticSearch.Tests.UnitTests
         }
 
         [Fact]
-        public void Routing_and_pipeline_connection_string_is_appended_as_query_string_parameter()
+        public void Routing_and_pipeline_connection_string()
         {
             UriFor(RoutingAndPipelineConnectionString).
                 AbsoluteUri.Should().
                 Be("http://localhost/log/logEvent?routing=foo&pipeline=pipe");
+        }
+
+        [Fact]
+        public void Routing_and_pipeline_and_rolling_connection_string()
+        {
+            UriFor(RoutingPipelineAndRollingConnectionString).
+                AbsoluteUri.Should().
+                Be("http://elasticsearch:9200/packing_alias/packing?routing=packing&pipeline=bs_packing_pipeline");
         }
 
         static Uri UriFor(string connectionString)
